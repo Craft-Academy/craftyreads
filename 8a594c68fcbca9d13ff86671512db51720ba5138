@@ -1,0 +1,6 @@
+Pour démarrer le plus simplement possible le projet, j'utilise la commande de la cli de Nest, en strict mode :
+`npx @nestjs/cli@latest new craftyreads --strict`
+
+J'utilise npm, et le projet est prêt !
+
+Il y a évidemment plusieurs fichiers scaffoldés pour nous, on fera le ménage plus tard ;)
