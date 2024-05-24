@@ -1,3 +1,5 @@
+# Installation du projet
+
 Pour démarrer le plus simplement possible le projet, j'utilise la commande de la cli de Nest, en strict mode :
 `npx @nestjs/cli@latest new craftyreads --strict`
 
