@@ -17,6 +17,8 @@ Dans notre cas, il y a deux contrats :
 
 Pour instaurer la mise en place de ces contrats, et surtout du deuxième donc (puisque le premier peut être omis si on décide de s'éloigner de la vision "pure"), il faut que notre couche application, le use case AddBookUseCase déclare qu'il peut communiquer avec le contrat lié à la communication extérieure. Plutôt que de dépendre directement de l'implémentation concrète BookRepository, il dépend maintenant de l'interface BookRepository. L'implémentation concrète se voit injectée dans le constructeur. Ce faisant, AddBookUseCase déclare qu'il doit nécessairement pouvoir communiquer avec un objet qui respecte le contrat de l'interface BookRepository. Il s'en fiche de savoir l'implémentation concrète derrière.
 
+`add-book.spec.ts`
+```diff
 +import { AddBookUseCase } from './add-book.usecase';
 +import { StubBookRepository } from './stub.book-repository';
 +
@@ -39,6 +41,7 @@ Pour instaurer la mise en place de ces contrats, et surtout du deuxième donc (p
 +    const addBook = new AddBookUseCase(bookRepository); // la dépendance est maintenant injectée.
 
      await addBook.execute({ title: 'Clean Code' });
+```
 
 Le use case est maintenant dans son propre fichier.
 
