@@ -31,7 +31,7 @@ Comme convenu, on commence par un test :
 +describe('Feature: Adding a book', () => {
 +  test('Example: User can add a book', async () => {
 +    const bookRepository = new BookRepository();
-+    const addBook = new AddBookUseCase(bookRepository);
++    const addBook = new AddBookUseCase();
 +
 +    await addBook.execute({ title: 'Clean Code' });
 +
@@ -52,3 +52,39 @@ Plusieurs petites choses à noter ici :
 - Je mets volontairement une mauvaise assertion dans le `expect`, pour que mon test échoue pour les bonnes raison. Pour l'instant le test échoue car `ReferenceError: BookRepository is not defined`
 
 On va pouvoir maintenant implémenter les classes qui nous manquent pour que le test échoue pour les bonnes raisons :
+
+```diff
+ -1,7 +1,18 @@
+ describe('Feature: Adding a book', () => {
+   test('Example: User can add a book', async () => {
+     // Pour l'instant je me contente d'écrire le code le plus simple possible
++    class BookRepository {
++      lastSavedBook: { title: string } | undefined;
++    }
++
+     const bookRepository = new BookRepository();
+-    const addBook = new AddBookUseCase(bookRepository);
++
++    class AddBookUseCase {
++      async execute(book: { title: string }) {
++        bookRepository.lastSavedBook = book;
++      }
++    }
++
++    const addBook = new AddBookUseCase();
+
+     await addBook.execute({ title: 'Clean Code' });
+```
+
+Cette fois on a bien le bon message d'erreur dans le test :
+
+{% hint style="danger" %}
+```diff
+- Expected  - 1
++ Received  + 1
+
+  Object {
+-   "title": "Clean OSdod",
++   "title": "Clean Code",
+  }
+```
