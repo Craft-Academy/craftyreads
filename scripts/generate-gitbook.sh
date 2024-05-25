@@ -6,6 +6,8 @@ scripts_repo_dir="$(pwd)"
 # Répertoire temporaire pour le GitBook
 temp_gitbook_dir=$(mktemp -d)
 
+github_repo_url="https://github.com/Craft-Academy/craftyreads/commit"
+
 # Cloner le repository GitBook
 git clone git@github.com:Craft-Academy/craftyreads-book.git "$temp_gitbook_dir"
 
@@ -41,6 +43,9 @@ for commit_hash in $commits; do
     note=$(git notes --ref="$notes_ref" show "$commit_hash" 2>/dev/null)
     if [ -n "$note" ]; then
         cd "$temp_gitbook_dir"
+        # Je m'inspire du code de ChatGPT pour faire ce que je veux vraiment : ajouter un lien vers le commit dans le GitBook
+        # AVANT la note
+        echo "[Commit checkpoint]($github_repo_url/$commit_hash)" >> "$all_notes_file"
         echo "$note" >> "$all_notes_file"
         echo "" >> "$all_notes_file"
         echo "" >> "$all_notes_file"  # Ajouter une ligne vide entre chaque note
