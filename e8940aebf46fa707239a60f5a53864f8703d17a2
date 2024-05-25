@@ -88,3 +88,18 @@ Cette fois on a bien le bon message d'erreur dans le test :
 +   "title": "Clean Code",
   }
 ```
+
+Il ne reste plus qu'à faire passer le test en corrigeant l'assertion :
+
+```diff
+ -17,7 +17,7 @@ describe('Feature: Adding a book', () => {
+     await addBook.execute({ title: 'Clean Code' });
+
+     expect(bookRepository.lastSavedBook).toEqual({
+-      title: 'Clean OSdod',
++      title: 'Clean Code',
+     });
+   });
+ });
+
+```
