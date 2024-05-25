@@ -88,6 +88,7 @@ Cette fois on a bien le bon message d'erreur dans le test :
 +   "title": "Clean Code",
   }
 ```
+{% endhint %}
 
 Il ne reste plus qu'à faire passer le test en corrigeant l'assertion :
 
