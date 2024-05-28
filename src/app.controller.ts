@@ -7,6 +7,15 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    return this.appService.getHello();
+    return `
+<!DOCTYPE html>
+<html>
+  <head>
+      <title>Page Title</title>
+  </head>
+  <body>
+      <p>Hello, World!</p>
+</body>
+</html>`;
   }
 }
