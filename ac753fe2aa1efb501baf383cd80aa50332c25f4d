@@ -24,10 +24,6 @@ J'ai donc demandé à mon pote ChatGPT de me générer le html minimum, il a fai
  }
 ```
 
-test gist
-
-{% embed url="https://gist.github.com/PCreations/f7aa90057e94866423bb2a6c5ee02242" %}
-
 Et cette fois on obtient bien le bon message d'erreur :
 
 {% embed url="https://demo.arcade.software/N7mNTIRSddLsPjzkfFUp?embed&show_copy_link=true" %}
