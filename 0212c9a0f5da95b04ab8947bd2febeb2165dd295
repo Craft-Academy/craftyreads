@@ -1,0 +1,29 @@
+La prochaine étape est donc de faire échouer notre test playwright mais pour la bonne raison.
+
+C'est-à-dire que l'on s'attend à recevoir un message d'erreur indiquant que le titre n'est pas le bon.
+
+J'ai donc demandé à mon pote ChatGPT de me générer le html minimum, il a fait un peu de zèle, mais voilà ce que j'ai donc modifié :
+
+```diff
+ -7,6 +7,15 @@ export class AppController {
+
+   @Get()
+   getHello(): string {
+-    return this.appService.getHello();
++    return `
++<!DOCTYPE html>
++<html>
++  <head>
++      <title>Page Title</title> // Je mets ici volontairement le mauvais titre !
++  </head>
++  <body>
++      <p>Hello, World!</p> // Bon ça c'est la ChatGPT Touch, c'était pas utile.
++</body>
++</html>`;
+   }
+ }
+```
+
+Et cette fois on obtient bien le bon message d'erreur :
+
+{% embed url="https://demo.arcade.software/N7mNTIRSddLsPjzkfFUp?embed&show_copy_link=true" %}
