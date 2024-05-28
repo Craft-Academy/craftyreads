@@ -1,0 +1,155 @@
+# Etape 2 : branchement de l'UI
+
+Pour cette deuxième étape de notre walking skeleton, on veut que l'utilisateur devienne l'acteur primaire, et donc qu'il dirige l'application à travers une UI.
+
+Le but d'un walking skeleton est aussi de configurer ce qui a trait aux tests, ici on va configurer Playwright pour s'en servir pour tester l'UI.
+
+Je ne dis pas que l'on va écrire tous nos tests d'acceptation sous forme de test Playwright, mais on verra plus tard que ceux-ci pourront nous sauver la mise ;)
+
+Pour l'instant l'objectif est de réduire les zones d'ombres du projet concernant notamment HTMX (que je n'ai encore jamais utilisé), et la configuration globale. Cette étape nous permet donc de tester tout ça pas à pas !
+
+## Installation de Playwright
+
+Première chose à faire : installer et initialiser playwright :
+
+`❯ npm init playwright@latest`
+
+Voici comment je l'ai configuré :
+
+```console
+Need to install the following packages:
+create-playwright@1.17.132
+Ok to proceed? (y) y
+(##################) ⠹ reify:create-playwright: http fetch GET 200 https://registry.npmjs.org/create-playwright/-/create-play
+Getting started with writing end-to-end tests with Playwright:
+Initializing project in '.'
+✔ Where to put your end-to-end tests? · test
+✔ Add a GitHub Actions workflow? (y/N) · false
+✔ Install Playwright browsers (can be done manually via 'npx playwright install')? (Y/n) · true
+Installing Playwright Test (npm install --save-dev @playwright/test)…
+```
+
+Comme on a déjà un dossier test à la racine, autant utiliser ce dossier !
+
+On se retrouve donc avec ces changements :
+
+`package.json`
+```diff
+       "ts"
+     ],
+     "rootDir": "src",
+-    "testRegex": ".*\\.spec\\.ts$",
++    "testRegex": "src/.*\\.spec\\.ts$", // Ici je modifie la configuration Jest pour qu'il ne cherche pas à exécuter les tests présents dans le dossier test, mais uniquement ceux dans le dossier src/
+     "transform": {
+       "^.+\\.(t|j)s$": "ts-jest"
+     },
+```
+
+`playwright.config.ts` : C'est la configuration générée lors de l'initialisation de playwright.
+```diff
+ -0,0 +1,77 @@
++import { defineConfig, devices } from '@playwright/test';
++
++/**
++ * Read environment variables from file.
++ * https://github.com/motdotla/dotenv
++ */
++// require('dotenv').config();
++
++/**
++ * See https://playwright.dev/docs/test-configuration.
++ */
++export default defineConfig({
++  testDir: './test',
++  /* Run tests in files in parallel */
++  fullyParallel: true,
++  /* Fail the build on CI if you accidentally left test.only in the source code. */
++  forbidOnly: !!process.env.CI,
++  /* Retry on CI only */
++  retries: process.env.CI ? 2 : 0,
++  /* Opt out of parallel tests on CI. */
++  workers: process.env.CI ? 1 : undefined,
++  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
++  reporter: 'html',
++  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
++  use: {
++    /* Base URL to use in actions like `await page.goto('/')`. */
++    // baseURL: 'http://127.0.0.1:3000',
++
++    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
++    trace: 'on-first-retry',
++  },
++
++  /* Configure projects for major browsers */
++  projects: [
++    {
++      name: 'chromium',
++      use: { ...devices['Desktop Chrome'] },
++    },
++
++    {
++      name: 'firefox',
++      use: { ...devices['Desktop Firefox'] },
++    },
++
++    {
++      name: 'webkit',
++      use: { ...devices['Desktop Safari'] },
++    },
++
++    /* Test against mobile viewports. */
++    // {
++    //   name: 'Mobile Chrome',
++    //   use: { ...devices['Pixel 5'] },
++    // },
++    // {
++    //   name: 'Mobile Safari',
++    //   use: { ...devices['iPhone 12'] },
++    // },
++
++    /* Test against branded browsers. */
++    // {
++    //   name: 'Microsoft Edge',
++    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
++    // },
++    // {
++    //   name: 'Google Chrome',
++    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
++    // },
++  ],
++
++  /* Run your local dev server before starting the tests */
++  webServer: {
++    command: 'npm run start',
++    url: 'http://127.0.0.1:3000',
++    reuseExistingServer: !process.env.CI,
++  },
++});
+```
+
+Ici ce qu'il est important de remarquer c'est que j'ai décommenté l'option webServer à la fin du fichier de configuration, pour que playwright lance automatiquement le serveur avant d'exécuter les tests. Pour l'instant c'est amplement suffisant pour ce que l'on veut tester :)
+
+Maintenant vient la partie intéressante : notre premier test playwright :
+
+`test/example.spec.ts`
+```diff
+ -0,0 +1,8 @@
++import { test, expect } from '@playwright/test';
++
++test('has title', async ({ page }) => {
++  await page.goto('http://localhost:3000');
++
++  // Expect a title "to contain" a substring.
++  await expect(page).toHaveTitle(/Crafty Reads/);
++});
+```
+
+Comme on peut le voir, c'est un test absolument trivial (j'ai même pas pris la peine de changer le nom du fichier). L'idée est ici d'avoir la plus petite étape possible intéressante pour avancer dans notre découverte de HTMX, et dans la configuration global du projet.
+
+Pour l'instant, on n'a évidemment pas encore de page HTML avec comme titre "Crafty Reads", on s'attend donc à ce que les tests fail:
+
+`npx playwright test`
+
+Par défaut, cette commande exécute les tests en mode headless. A la fin des tests, l'output apparaît dans la console, mais aussi dans une page HTML dressant le rapport d'exécution :
+
+<div style="position: relative; padding-bottom: calc(66.66666666666666% + 41px); height: 0; width: 100%;"><iframe src="https://demo.arcade.software/gRMCYbfJPmJ5OBGPAe4B?embed&show_copy_link=true" title="Playwright Test Report" frameborder="0" loading="lazy" webkitallowfullscreen mozallowfullscreen allowfullscreen allow="clipboard-write" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;color-scheme: light;"></iframe></div>
