@@ -38,10 +38,10 @@ On se retrouve donc avec ces changements :
        "ts"
      ],
      "rootDir": "src",
--    "testRegex": ".*\\.spec\\.ts$",
-+    "testRegex": "src/.*\\.spec\\.ts$", // Ici je modifie la configuration Jest pour qu'il ne cherche pas à exécuter les tests présents dans le dossier test, mais uniquement ceux dans le dossier src/
+-    "testRegex": ".*\.spec\.ts$",
++    "testRegex": "src/.*\.spec\.ts$", // Ici je modifie la configuration Jest pour qu'il ne cherche pas à exécuter les tests présents dans le dossier test, mais uniquement ceux dans le dossier src/
      "transform": {
-       "^.+\\.(t|j)s$": "ts-jest"
+       "^.+\.(t|j)s$": "ts-jest"
      },
 ```
 
@@ -151,5 +151,7 @@ Pour l'instant, on n'a évidemment pas encore de page HTML avec comme titre "Cra
 `npx playwright test`
 
 Par défaut, cette commande exécute les tests en mode headless. A la fin des tests, l'output apparaît dans la console, mais aussi dans une page HTML dressant le rapport d'exécution :
+
+{% embed url="https://demo.arcade.software/gRMCYbfJPmJ5OBGPAe4B?embed&show_copy_link=true" %}
 
 <div style="position: relative; padding-bottom: calc(66.66666666666666% + 41px); height: 0; width: 100%;"><iframe src="https://demo.arcade.software/gRMCYbfJPmJ5OBGPAe4B?embed&show_copy_link=true" title="Playwright Test Report" frameborder="0" loading="lazy" webkitallowfullscreen mozallowfullscreen allowfullscreen allow="clipboard-write" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;color-scheme: light;"></iframe></div>
