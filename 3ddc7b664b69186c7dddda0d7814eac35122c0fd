@@ -33,3 +33,28 @@ S'il y a une query dans l'url, on affiche donc "Book added". Et le test passe :
 C'est en effet une bonne remarque. C'est parce que le but de ce "test" ici n'est à cette étape pas de tester le bon fonctionnement de notre app, mais de nous servir de guide pour compléter la "step 0" de notre projet !
 
 Prenons un exemple :
+
+`src/app.controller.ts`
+```diff
+ -1,9 +1,9 @@
+ import { Controller, Get, Query } from '@nestjs/common';
+-import { AppService } from './app.service';
++import { AddBookUseCase } from './add-book.usecase';
+
+ @Controller()
+ export class AppController {
+-  constructor(private readonly appService: AppService) {}
++  constructor(private readonly addBookUseCase: AddBookUseCase) {}
+```
+
+J'ai simplement ajouté notre `AddBookUseCase` en tant que dépendance. Et notre test ne passe plus ! Eh oui, on a oublié de configurer notre injection de dépendances...
+
+{% embed url="https://app.arcade.software/share/TSutqxXQsi3ZQ3aPwUB1" %}
+
+{% hint style="warning" %}
+"Ouais enfin merci mais j'ai pas besoin d'un test automatisé pour me dire que j'ai oublié de configuer mon injection de dépendances hein...Quand j'ai mon app qui tourne en `watch`, l'erreur serait apparue directement aussi, même plus rapidement qu'avec le test !"
+{% endhint %}
+
+Et c'est complètement vrai !
+
+Encore une fois, je rappelle qu'ici le rôle de notre walking skeleton est d'avoir tout de configuré, ici le test nous indique effectivement que nous avons mal configuré l'application, mais c'est un "bonus" en l'occurrence.
