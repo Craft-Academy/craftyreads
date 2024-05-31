@@ -11,11 +11,15 @@ export class AppController {
 <!DOCTYPE html>
 <html>
   <head>
-      <title>Crafty Reads</title>
+    <title>Crafty Reads</title>
   </head>
   <body>
-      <p>Hello, World!</p>
-</body>
+    <form>
+      <label for="title">Title</label>
+      <input type="text" id="title" name="title">
+      <button type="submit">Add book</button>
+    </form>
+  </body>
 </html>`;
   }
 }
