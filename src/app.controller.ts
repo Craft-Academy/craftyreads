@@ -11,7 +11,7 @@ export class AppController {
 <!DOCTYPE html>
 <html>
   <head>
-      <title>Page Title</title>
+      <title>Crafty Reads</title>
   </head>
   <body>
       <p>Hello, World!</p>
