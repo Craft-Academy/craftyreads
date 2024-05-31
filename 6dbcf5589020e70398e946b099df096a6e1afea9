@@ -1,0 +1,35 @@
+Avant de nous concentrer sur la partie configuration + htmx, concentrons-nous à faire passer ce test.
+
+La façon la plus simple de le faire passer est tout simplement de vérifier l'existence d'une query dans l'url, ce qui implique que le formulaire a été envoyé, et afficher "Book added" dans ce cas :
+
+`src/app.controller.ts`
+```diff
+ -6,7 +6,7 @@ export class AppController {
+   constructor(private readonly appService: AppService) {}
+
+   @Get()
+-  getHello(): string {
++  getHello(@Query() query?: { title: string }): string {
+     return `
+ // ...
+   <body>
+     <form>
++    ${query?.title ? '<p>Book added</p>' : ''}
+       <label for="title">Title</label>
+       <input type="text" id="title" name="title">
+       <button type="submit">Add book</button>
+```
+
+Le decorator @Query permet de récuperer les paramètres de query de l'url. Quand le formulaire est validé, la méthode par défaut est "GET", encore une fois on fait au plus simple ici. A terme ça ne sera pas un GET ;)
+
+S'il y a une query dans l'url, on affiche donc "Book added". Et le test passe :
+
+{% embed url="https://app.arcade.software/share/gLvsvN3nVOT07I5dDwqa" %}
+
+{% hint style="warning" %}
+"Mais rien n'empêche ici d'écrire n'importe quoi dans l'url en tant que query title directement et le test passera toujours ! On ne teste rien ici finalement 🤷🏼"
+{% endhint %}
+
+C'est en effet une bonne remarque. C'est parce que le but de ce "test" ici n'est à cette étape pas de tester le bon fonctionnement de notre app, mais de nous servir de guide pour compléter la "step 0" de notre projet !
+
+Prenons un exemple :
