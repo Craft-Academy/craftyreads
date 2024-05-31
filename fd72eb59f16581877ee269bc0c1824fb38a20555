@@ -1,0 +1,78 @@
+Voici les quelques modifications à apporter pour configurer correctement NestJS :
+
+`src/book-repository.port.ts`
+```diff
+ -1,3 +1,3 @@
+-export interface BookRepository {
+-  save(book: { title: string }): Promise<void>;
++export abstract class BookRepository {
++  abstract save(book: { title: string }): Promise<void>;
+ }
+```
+
+Ici j'ai changé l'interface en abstract class. Les plus puristes d'entre nous vont crier à l'hérésie !
+
+En effet, on déconseille généralement d'utiliser les abstract class en lieu et place des interfaces, pour éviter d'avoir des implémentations par défaut, et parce que beaucoup de languages ne peuvent pas étendre plusieurs abstract classes.
+
+Ceci étant dit, en TypeScript il faut savoir deux choses :
+
+- les interfaces n'ont pas d'existence réelle une fois compilée. On ne peut donc pas s'en servir directement comme token pour l'injection de dépendances
+- les abstracts classes peuvent être "implémentée" plutôt qu'étendues. Oui oui, on peut faire `class Toto implements MonAbstractClass`
+
+Il faut cependant resté rigoureux sur le fait de ne pas ajouter de comportement par défaut dans ces classes pour respecter leur contrat de "port".
+
+Si l'on tient vraiment à utiliser des interfaces, on peut utiliser un token manuellement, en exportant par exemple dans le même fichier que l'interface un `Symbol` du nom de l'interface, exemple : `export const BookRepository = new Symbol('BookRepository')`.
+
+Il faudrait alors utiliser ce symbole dans l'injection de dépendances de NestJS, et passer par un `useFactory` pour correctement configurer le provider.
+
+C'est beaucoup plus verbeux, donc par pragmatisme je conseille d'utiliser plutôt une abstract class :)
+
+Ne reste plus qu'à ajouter le decorator `@Injectable()` dans notre `AddBookUseCase` pour indiquer à NestJS qu'il doit voir ses dépendances injectées.
+
+```diff
+ -1,5 +1,7 @@
++import { Injectable } from '@nestjs/common';
+ import { BookRepository } from './book-repository.port';
+
++@Injectable()
+ export class AddBookUseCase {
+   constructor(private readonly bookRepository: BookRepository) {}
+```
+
+{% hint style="warning" %}
+"Oula oula, mais attends, le principe de l'architecture hexagonale, la clean archi, tout ça tout ça là, c'est pas justement de séparer le framework du coeur de métier ? Qu'est-ce que ce decorator propre à NestJS vient faire dans notre beau code censé être framework-agnostique !"
+{% endhint %}
+
+Alors oui, mais non.
+
+Encore une fois il s'agit ici d'être pragmatique. Il est en effet très important de séparer la logique métier du la logique technique du framework ou autre. Mais ici il faut relativiser : ce n'est qu'une dépendance via un decorator. Decorator même pas pris en compte dans nos tests unitaires, donc complètement invisible pour nous !
+
+Si l'on voulait se passer complètement de ce decorator, on pourrait passer par des `useFactory()` comme cité au dessus. Ce qui ferait écrire plus de code de configuration dans le framework.
+
+Ici je décide donc d'utiliser les outils du framework pour me faciliter la vie, et dans l'éventualité où un jour je veuille chagner de framework Node (on sait très bien que ça n'arrivera jamais), j'aurais juste à retirer ces decoratos. Not a big deal ;)
+
+Ne reste plus qu'à configurer notre module NestJS :
+
+```diff
+ -1,10 +1,18 @@
+ import { Module } from '@nestjs/common';
+ import { AppController } from './app.controller';
+-import { AppService } from './app.service';
++import { AddBookUseCase } from './add-book.usecase';
++import { StubBookRepository } from './stub.book-repository';
++import { BookRepository } from './book-repository.port';
+
+ @Module({
+   imports: [],
+   controllers: [AppController],
+-  providers: [AppService],
++  providers: [
++    {
++      provide: BookRepository,
++      useValue: StubBookRepository,
++    },
++    AddBookUseCase,
++  ],
+ })
+ export class AppModule {}
+```
