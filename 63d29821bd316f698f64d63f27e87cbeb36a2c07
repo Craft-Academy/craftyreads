@@ -1,0 +1,47 @@
+L'étape naturelle d'après est donc de simplement faire passer le test :
+
+`src/app.controller.ts`
+
+```diff
+ -11,7 +11,7 @@ export class AppController {
+ <!DOCTYPE html>
+ <html>
+   <head>
+-      <title>Page Title</title>
++      <title>Crafty Reads</title>
+   </head>
+   <body>
+       <p>Hello, World!</p>
+```
+
+Un petit `npx playwright test` nous indique que le test est maintenant vert !
+
+Bon. On n'a rien fait de particulièrement compliqué ici. Je rappelle encore une fois que l'objectif ce walking skeleton est de nous faire avancer dans la "configuration" de notre projet, de prendre un petit peu de temps au départ pour mettre en place les outils qui nous feront gagner un temps fou au fur et à mesure du développement.
+
+Se pose donc maintenant la question suivante : j'ai expliqué précédement que la deuxième étape du walking skeleton était d'utiliser un vrai adapter primaire (ici l'UI), mais on garde pour l'instant un stub pour l'adapteur secondaire (la base de données).
+
+Seulement voilà : nos tests se lancent depuis l'UI, donc depuis un "vrai" site qui tourne. Comment configurer notre "stub" dans ces conditions ? Notre test n'a pas accès au stub, le site tourne dans un processus complètement différent des tests !
+
+Rappelons-nous le rôle le plus important du walking skeleton : avancer dans la configuration du projet et la mise en place de l'architecture logicielle sous-jacente et des différents outils.
+
+Le rôle du walking skeleton n'est PAS d'avoir un code parfait tout de suite !
+
+Il nous reste donc ici quelques éléments à gérer :
+
+- l'injection de dépendances de NestJS
+- l'utilisation de htmx
+
+L'objectif de cette seconde étape de notre walking skeleton va donc être de mettre en place ces éléments. Le test depuis l'UI sera temporairement non-optimal, mais ils nous sera toutefois utile pour avancer.
+
+Le plan sera donc le suivant :
+
+- on va afficher un simple formulaire avec un seul champ "title" pour ajouter le titre du livre
+- on va se servir de notre use case AddBookUseCase dans le controller pour nous forcer à configurer l'injection de dépendances de NestJS
+- notre use case étant déjà testé unitairement avec le stub, on va pour l'instant simplement partir du principe que si le use case ne throw pas d'erreur, c'est que le livre a bien été enregistré
+- on va renvoyer "book added" dans le controller lorsque le livre est ajouté.
+
+Il manque évidemment ici dans le cadre d'un vrai test d'acceptation le fait de vérifier que le livre est réellement dans la base de données (il faudrait même le vérifier à travers l'api publique et non directement via la base de données). Comme pour l'instant nous n'avons pas la fonctionnalité de récupérer un livre dans l'api publique du projet, on se contente ici d'un test imparfait qui nous fait simplement avancer dans la configuration globale du projet.
+
+A la fin du walking skeleton, ce test sera mis à jour et sera cette fois-çi beaucoup plus pertinent.
+
+Let's go !
