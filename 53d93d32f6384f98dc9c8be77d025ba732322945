@@ -1,0 +1,129 @@
+Maintenant que la configuration du module est correcte, le test passe à nouveau :)
+
+Je profite de cette étape pour faire un petit refactoring purement graphique en ajoutant une dose de tailwind :
+
+`src/app.controller.ts`
+```diff
+export class AppController {
+ <html>
+   <head>
+     <title>Crafty Reads</title>
++    <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <script src="https://cdn.tailwindcss.com"></script>
+   </head>
+   <body>
+-    <form>
+-    ${query?.title ? '<p>Book added</p>' : ''}
+-      <label for="title">Title</label>
+-      <input type="text" id="title" name="title">
+-      <button type="submit">Add book</button>
+-    </form>
++    <main class="container mx-auto px-4 py-8">
++      ${query?.title ? '<p>Book added</p>' : ''}
++      <form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
++        <div class="mb-4">
++          <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
++            Title
++          </label>
++          <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="title" type="text" name="title" placeholder="Enter book title" required>
++        </div>
++        <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
++          Add Book
++        </button>
++      </form>
++    </main>
+   </body>
+ </html>`;
+   }
+
+```
+
+L'objectif ce walking skeleton, je le rappelle, est de configurer toute la stack que l'on veut utiliser. Il reste notamment ici à tester htmx. Pour "l'installer", rien de plus simple :
+
+`src/app.controller.ts`
+```diff
+ -15,6 +15,7 @@ export class AppController {
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <script src="https://cdn.tailwindcss.com"></script>
++    <script src="https://unpkg.com/htmx.org@2.0.1"></script>
+   </head>
+   <body>
+     <main class="container mx-auto px-4 py-8">
+```
+
+L'étape suivante est d'ajouter un nouveau test d'acceptation qui va vérifier que l'on ne peut pas ajouter un livre qui existe déjà en base de données.
+
+Pour ce faire, nous allons tout simplement remplir deux fois le formulaire.
+
+La première fois, dans la partie "arrange" du test, pour enregistrer le livre.
+
+Puis une deuxiième fois dans la partie "act" du test, lorsque l'on veut tenter d'ajouter un livre dont le titre existe déjà.
+
+Evidemment, tester si un livre existe déjà uniquement par son titre n'est pas suffisant en pratique ! Ici ça va cependant nous aider à tester plusieurs choses :
+
+ - vérifier que l'on utilise bien le use case (car pour l'instant on ne l'utilise pas)
+ - vérifier que htmx est capable de correctement remplacer le contenu du formulaire pour afficher l'erreur
+
+Avec ça, il ne nous restera plus qu'à brancher un "vrai" adapter secondaire pour le BookRepository et notre walking skeleton sera terminé !
+
+Voici le scénario ajouté dans les tests playwright :
+
+`test/add-book.spec.ts`
+```diff
++
++  test('Example: User cannot add a book that already exists', async ({
++    page,
++  }) => {
++    await page.goto('http://localhost:3000');
++    await page.getByLabel(/title/i).fill('Clean Code');
++    await page.getByText(/add book/i).click();
++
++    await page.getByLabel(/title/i).fill('Clean Code');
++    await page.getByText(/add book/i).click();
++
++    await expect(page.getByText(/book already exists/i)).toBeVisible();
++  });
+ });
+```
+
+Ce test va évidemment échouer. On peut maintenant descendre d'un niveau et passer au test unitaire :
+
+`src/add-book.spec.ts`
+```diff
++  test('Example: User cannot add a book that already exists', async () => {
++    const bookRepository = new StubBookRepository();
++    bookRepository.booksByTitle.set('Clean Code', { title: 'Clean Code' });
++    const addBook = new AddBookUseCase(bookRepository);
++
++    const addingBook = addBook.execute({ title: 'Clean Code' });
++
++    await expect(addingBook).rejects.toThrowError(
++      new BookAlreadyExistsError('The book Clean Code already exists'),
++    );
++  });
+ });
+
+Plusieurs choses intéressantes ici :
+
+ - Tout d'abord, on ajoute manuellement le livre "Clean Code" dans notre StubRepository, qui devient au passage un Fake, car simulant une implémentation réelle.
+ - On s'attend ensuite à ce que le use case échoue avec une erreur de type `BookAlreadyExistsError`. Cette erreur n'existe évidemment pas encore.
+
+Au passage, comme le StubBookRepository devient un Fake, on va changer le nom et l'appeler avec la nomenclature que j'utilise pour mes adapters classiques : TechnoXXXRepository. On est sur un repository en mémoire, donc partons pour le nom `InMemoryBookRepository`
+
+`src/in-memory-book.repository.ts`
+```diff
+ import { BookRepository } from './book-repository.port';
+
+ export class InMemoryBookRepository implements BookRepository {
++  booksByTitle = new Map<string, { title: string }>(); // J'en profite ici pour créer une Map référençant les livres par titre.
++
+   lastSavedBook: { title: string } | undefined;
+
+   async save(book: { title: string }): Promise<void> {
+     this.lastSavedBook = book;
++    this.booksByTitle.set(book.title, book);
+   }
+ }
+```
