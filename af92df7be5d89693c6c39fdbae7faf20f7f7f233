@@ -38,3 +38,5 @@ export class AppController {
    }
 
 ```
+
+L'objectif ce walking skeleton, je le rappelle, est de configurer toute la stack que l'on veut utiliser. Il reste notamment ici à tester htmx. Pour "l'installer", rien de plus simple :
