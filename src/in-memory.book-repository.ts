@@ -1,9 +1,12 @@
 import { BookRepository } from './book-repository.port';
 
-export class StubBookRepository implements BookRepository {
+export class InMemoryBookRepository implements BookRepository {
+  booksByTitle = new Map<string, { title: string }>();
+
   lastSavedBook: { title: string } | undefined;
 
   async save(book: { title: string }): Promise<void> {
     this.lastSavedBook = book;
+    this.booksByTitle.set(book.title, book);
   }
 }

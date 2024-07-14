@@ -85,35 +85,35 @@ for commit_hash in $commits; do
         cd "$scripts_repo_dir"
         # Parcourir la note ligne par ligne
         while IFS= read -r line; do
-            if [[ "$line" == \`\`\`diff* ]]; then
-                diff_content=""
-                while IFS= read -r diff_line; do
-                    if [[ "$diff_line" == \`\`\` ]]; then
-                        break
-                    fi
-                    diff_content+="$diff_line"$'\n'
-                done
+            # if [[ "$line" == \`\`\`diff* ]]; then
+            #     diff_content=""
+            #     while IFS= read -r diff_line; do
+            #         if [[ "$diff_line" == \`\`\` ]]; then
+            #             break
+            #         fi
+            #         diff_content+="$diff_line"$'\n'
+            #     done
                 
-                # Générer un hash pour le diff
-                diff_hash=$(generate_hash "$diff_content")
-                short_hash=${diff_hash:0:12}
-                gist_name="${short_hash}.diff"
+            #     # Générer un hash pour le diff
+            #     diff_hash=$(generate_hash "$diff_content")
+            #     short_hash=${diff_hash:0:12}
+            #     gist_name="${short_hash}.diff"
                 
-                # Vérifier si un gist avec ce nom existe déjà
-                if gist_exists "$short_hash"; then
-                    # Obtenir l'URL du gist existant
-                    gist_url=$(get_gist_url "$short_hash")
-                else
-                    # Créer un nouveau gist pour le diff et obtenir l'URL
-                    gist_url=$(create_gist "$diff_content" "$gist_name")
-                fi
+            #     # Vérifier si un gist avec ce nom existe déjà
+            #     if gist_exists "$short_hash"; then
+            #         # Obtenir l'URL du gist existant
+            #         gist_url=$(get_gist_url "$short_hash")
+            #     else
+            #         # Créer un nouveau gist pour le diff et obtenir l'URL
+            #         gist_url=$(create_gist "$diff_content" "$gist_name")
+            #     fi
                 
-                echo $gist_url
-                # Ajouter le bloc embed avec l'URL du gist
-                modified_note+="{% embed url=\"$gist_url\" %}\n"
-            else
+            #     echo $gist_url
+            #     # Ajouter le bloc embed avec l'URL du gist
+            #     modified_note+="{% embed url=\"$gist_url\" %}\n"
+            # else
                 modified_note+="$line\n"
-            fi
+            # fi
         done <<< "$note"
 
         cd "$temp_gitbook_dir"

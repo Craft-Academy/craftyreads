@@ -9,4 +9,17 @@ test.describe('Feature: Adding a book', () => {
 
     await expect(page.getByText(/book added/i)).toBeVisible();
   });
+
+  test('Example: User cannot add a book that already exists', async ({
+    page,
+  }) => {
+    await page.goto('http://localhost:3000');
+    await page.getByLabel(/title/i).fill('Clean Code');
+    await page.getByText(/add book/i).click();
+
+    await page.getByLabel(/title/i).fill('Clean Code');
+    await page.getByText(/add book/i).click();
+
+    await expect(page.getByText(/book already exists/i)).toBeVisible();
+  });
 });

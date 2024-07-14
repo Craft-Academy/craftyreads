@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AddBookUseCase } from './add-book.usecase';
-import { StubBookRepository } from './stub.book-repository';
+import { InMemoryBookRepository } from './in-memory.book-repository';
 import { BookRepository } from './book-repository.port';
 
 @Module({
@@ -10,7 +10,7 @@ import { BookRepository } from './book-repository.port';
   providers: [
     {
       provide: BookRepository,
-      useValue: StubBookRepository,
+      useValue: InMemoryBookRepository,
     },
     AddBookUseCase,
   ],
