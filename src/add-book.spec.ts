@@ -1,4 +1,5 @@
 import { AddBookUseCase } from './add-book.usecase';
+import { BookAlreadyExistsError } from './book-already-exists.error';
 import { InMemoryBookRepository } from './in-memory.book-repository';
 
 describe('Feature: Adding a book', () => {
@@ -22,7 +23,7 @@ describe('Feature: Adding a book', () => {
     const addingBook = addBook.execute({ title: 'Clean Code' });
 
     await expect(addingBook).rejects.toThrow(
-      new BookAlreadyExistsError('The book Clean Code already exists'),
+      new BookAlreadyExistsError('Clean Code'),
     );
   });
 });

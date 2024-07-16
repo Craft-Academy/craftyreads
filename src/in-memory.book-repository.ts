@@ -9,4 +9,8 @@ export class InMemoryBookRepository implements BookRepository {
     this.lastSavedBook = book;
     this.booksByTitle.set(book.title, book);
   }
+
+  async doesBookExist(title: string): Promise<boolean> {
+    return this.booksByTitle.has(title);
+  }
 }
