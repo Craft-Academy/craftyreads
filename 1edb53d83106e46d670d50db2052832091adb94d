@@ -1,0 +1,89 @@
+Première chose à faire maintenant : créer l'erreur BookAlreadyExistsError pour que le test "compile" :
+
+`book-already-exists.error.ts`
+```diff
+ -0,0 +1,5 @@
++export class BookAlreadyExistsError extends Error {
++  constructor(bookTitle: string) {
++    super(`The book ${bookTitle} already exists`);
++  }
++}
+```
+
+Le test échoue maintenant pour une première raison : on s'attend à ce qu'une erreur soit lancée, alors que pour l'instant aucune erreur n'est lancée.
+
+La logique pour savoir qu'un livre existe va se positionner directement dans le repository. C'est en effet la solution la plus simple et la plus efficace que de déléguer ça au repository (et donc plus tard à la base de données sous-jacente) :
+
+`src/book-repository.port.ts`
+```diff
+ -1,3 +1,4 @@
+ export abstract class BookRepository {
+   abstract save(book: { title: string }): Promise<void>;
++  abstract doesBookExist(title: string): Promise<boolean>;
+ }
+```
+
+Notre implémentation in-memory est toute simple :
+
+```diff
+ -9,4 +9,8 @@ export class InMemoryBookRepository implements BookRepository {
+     this.lastSavedBook = book;
+     this.booksByTitle.set(book.title, book);
+   }
++
++  async doesBookExist(title: string): Promise<boolean> {
++    return this.booksByTitle.has(title);
++  }
+ }
+```
+
+Il nous faut maintenant faire une petite modification subtile de notre test pour avoir de nouveau la bonne raison de "fail" du test, en l'occurrence ici avoir par exemple un mauvais message dans l'erreur :
+
+`src/add-book.spec.ts`
+```diff
+ -21,8 +22,6 @@ describe('Feature: Adding a book', () => {
+
+     const addingBook = addBook.execute({ title: 'Clean Code' });
+
+-    await expect(addingBook).rejects.toThrow(
+-      new BookAlreadyExistsError('The book Clean Code already exists'),
+-    );
++    await expect(addingBook).rejects.toThrow(new BookAlreadyExistsError('Foo'));
+   });
+ });
+```
+
+On peut maintenant implémenter la logique triviale :
+
+`src/add-book.usecase.ts`
+```diff
+ -1,11 +1,15 @@
+ import { Injectable } from '@nestjs/common';
+ import { BookRepository } from './book-repository.port';
++import { BookAlreadyExistsError } from './book-already-exists.error';
+
+ @Injectable()
+ export class AddBookUseCase {
+   constructor(private readonly bookRepository: BookRepository) {}
+
+-  execute(book: { title: string }) {
++  async execute(book: { title: string }) {
++    if (await this.bookRepository.doesBookExist(book.title)) {
++      throw new BookAlreadyExistsError(book.title);
++    }
+     return this.bookRepository.save(book);
+   }
+ }
+```
+
+Notre test fail maintenant pour la bonne raison :
+```
+Expected message: "The book Foo already exists"
+Received message: "The book Clean Code already exists"
+      at AddBookUseCase.execute (src/add-book.usecase.ts:38:27)
+      at Object.<anonymous> (src/add-book.spec.ts:22:29)
+```
+
+Pourquoi est-ce si important d'avoir toujours un test qui fail pour la bonne raison avant de le faire passer ? Tout simplement pour éviter les faux positifs !
+
+Un exemple typique : oublier d'ajouter une valeur à un enum. Ca marche dans le test car la valeur vaut `undefined` mais c'est évidemment pas ce qu'on attend et ça peut créer plein d'effets de bord !
