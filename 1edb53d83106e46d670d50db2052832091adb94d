@@ -87,3 +87,19 @@ Received message: "The book Clean Code already exists"
 Pourquoi est-ce si important d'avoir toujours un test qui fail pour la bonne raison avant de le faire passer ? Tout simplement pour éviter les faux positifs !
 
 Un exemple typique : oublier d'ajouter une valeur à un enum. Ca marche dans le test car la valeur vaut `undefined` mais c'est évidemment pas ce qu'on attend et ça peut créer plein d'effets de bord !
+
+Ne reste plus qu'à faire passer le test maintenant :
+
+`src/add-book.spec.ts`
+```diff
+ -22,6 +22,8 @@ describe('Feature: Adding a book', () => {
+
+     const addingBook = addBook.execute({ title: 'Clean Code' });
+
+-    await expect(addingBook).rejects.toThrow(new BookAlreadyExistsError('Foo'));
++    await expect(addingBook).rejects.toThrow(
++      new BookAlreadyExistsError('Clean Code'),
++    );
+   });
+ });
+```
