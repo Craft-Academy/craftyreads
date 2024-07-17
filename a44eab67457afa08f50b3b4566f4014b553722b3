@@ -1,0 +1,177 @@
+Rappelons-nous que l'un des objectifs restants du walking skeleton est de mettre en place htmx.
+
+La prochaine étape va donc être de modifier quelque peu le HTML retourné par notre controller pour y inclure la magie htmx.
+
+L'idée est toute simple :
+
+- le formulaire va dorénavant utiliser la méthode POST
+- on va "booster" le formulaire en y ajoutant l'attribut `hx-boost`
+- htmx va donc effectuer une requête ajax pour récupérer soumettre le formulaire
+- on va créer une nouvelle route dans notre controller pour répondre à cette soumission du formulaire et renvoyer le HTML correspondant
+- htmx va remplacer notre HTML existant par celui renvoyé par notre API grâce aux attributs `hx-target` et `hx-swap`
+
+Commençons par modifier la route affichant le formulaire :
+
+`src/app.controller.ts`
+```diff
+ -6,7 +6,7 @@ export class AppController {
+   constructor(private readonly addBookUseCase: AddBookUseCase) {}
+
+   @Get()
+-  getHello(@Query() query?: { title: string }): string {
++  index(): string { // plus besoin de récupérer la querystring, cette route devient simplement notre page de base
+     return `
+ <!DOCTYPE html>
+ <html>
+```
+
+J'ajoute ensuite le script de htmx, et j'ajoute les attributs htmx vus plus haut :
+
+`src/app.controller.ts`
+```diff
+ -15,12 +15,11 @@ export class AppController {
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <script src="https://cdn.tailwindcss.com"></script>
++    <script src="https://unpkg.com/htmx.org@2.0.1" integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/" crossorigin="anonymous"></script>
+   </head>
+   <body>
+     <main class="container mx-auto px-4 py-8">
+-      ${query?.title ? '<p>Book added</p>' : ''}
+-      <form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
++      <div id="add-book-form">
++        <form action="/" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" method="post" hx-boost="true" hx-target="#add-book-form" hx-swap="outerHTML">
+           <div class="mb-4">
+             <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
+               Title
+```
+
+Il faut ensuite ajouter la nouvelle route : celle qui va recevoir la soumission du formulaire, pour renvoyer soit le formulaire + le message de succces, soit le formulaire + le message d'erreur. Pour l'instant, on duplique comme des sales ! On nettoiera après, l'objectif est d'abord de faire passer les tests d'acceptation :
+
+`src/app.controller.ts`
+```diff
+ -35,4 +34,56 @@ export class AppController {
+   </body>
+ </html>`;
+   }
++
++  @Post()
++  async addBook(@Body() body: { title: string }) {
++    try {
++      await this.addBookUseCase.execute({ title: body.title });
++      return `
++        <div id="add-book-form">
++          <div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md" role="alert">
++            <div class="flex">
++              <div class="py-1"><svg class="fill-current h-6 w-6 text-teal-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/></svg></div>
++              <div>
++                <p class="text-sm">Book added</p>
++              </div>
++            </div>
++          </div>
++          <form action="/" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" method="post" hx-boost="true" hx-target="#add-book-form" hx-swap="outerHTML">
++            <div class="mb-4">
++              <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
++                Title
++              </label>
++              <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="title" type="text" name="title" placeholder="Enter book title" required>
++            </div>
++            <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
++              Add Book
++            </button>
++          </form>
++        </div>
++      `;
++    } catch (error) {
++      return `
++        <div id="add-book-form">
++          <div role="alert">
++            <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
++              Book not added
++            </div>
++          </div>
++          <form action="/" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" method="post" hx-boost="true" hx-target="#add-book-form" hx-swap="outerHTML">
++            <div class="mb-4">
++              <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
++                Title
++              </label>
++              <input class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="title" name="title" type="text" placeholder="Enter book title" name="title" placeholder="Enter book title" required>
++              <p class="text-red-500 text-xs italic mt-2">${(error as any).message}</p>
++            </div>
++            <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
++              Add Book
++            </button>
++          </form>
++        </div>
++      `;
++    }
++  }
+ }
+```
+
+Un point intéressant que les plus attentifs d'entre-vous auront probablement déjà relevé : je me suis trompé dans la configuration de mon module nest. En effet j'ai utilisé `useValue` au lieu de `useClass`. Aucun problème dans le typage car NestJS ne peut pas remonter l'information jusqu'à là où le `BookRepository` sera injecté. On est donc sur une belle erreur au runtime ! Erreur heureusement vite capturée grâce à notre test d'acceptation !
+
+`src/app.module.ts`
+```diff
+ -10,7 +10,7 @@ import { BookRepository } from './book-repository.port';
+   providers: [
+     {
+       provide: BookRepository,
+-      useValue: InMemoryBookRepository,
++      useClass: InMemoryBookRepository,
+     },
+     AddBookUseCase,
+   ],
+```
+
+Enfin, il nous faut modifier un petit peu le test d'acceptation.
+
+En effet, actuellement j'utilise un repository in-memory. Lorsque l'on va lacner les tests d'acceptation, le serveur va se lancer, et le `InMemoryBookRepository` sera instancié. De fait, chaque test "utilise" de manière sous-jacente le même repository, ce qui rend les tests non isolés ! Les tests étant exécutés en parallèle, il est possible que le premier test fail directement car le livre Clean Code aura déjà été ajouté par un autre test.
+
+C'est même encore pire : un même test peut ne pas être isolé avec lui-même, car si l'on exécute les tests playwright avec le mode `--ui`, il va exécuter les tests dans 3 navigateurs différents. Donc 6 tests ici en tout !
+
+C'est un cas typique de gestion de "seed" de données dans un environnement de tests d'acceptation.
+
+Il existe plein de façon de remédier à ça. Pour l'instant, on va y remédier de façon pas très propre. L'objectif est de nous faire avancer d'une étape en faisant passer les tests. Mais évidemment on reviendra dessus plus tard ;)
+
+La solution la plus simple ici est juste de ne pas tenter d'insérer le même livre dans les 2 tests ! Ca assure l'isolation entre les deux tests. Quant à l'isolation du test avec lui-même, on peut tout simplement ajouter un nombre aléatoire en plus dans le nom du livre :
+
+`test/add-book-spec.ts`
+```diff
+ -3,8 +3,9 @@ import { test, expect } from '@playwright/test';
+ test.describe('Feature: Adding a book', () => {
+   test('Example: User can add a book', async ({ page }) => {
+     await page.goto('http://localhost:3000');
++    const rand = Math.floor(Math.random() * 1000000);
+
+-    await page.getByLabel(/title/i).fill('Clean Code');
++    await page.getByLabel(/title/i).fill(`Clean Code ${rand}`);
+     await page.getByText(/add book/i).click();
+
+     await expect(page.getByText(/book added/i)).toBeVisible();
+```
+
+`test/add-book-spec.ts`
+```diff
+ -14,12 +15,14 @@ test.describe('Feature: Adding a book', () => {
+     page,
+   }) => {
+     await page.goto('http://localhost:3000');
+-    await page.getByLabel(/title/i).fill('Clean Code');
++    await page.getByLabel(/title/i).fill('The Pragmatic Programmer');
+     await page.getByText(/add book/i).click();
+
+-    await page.getByLabel(/title/i).fill('Clean Code');
++    await page.getByLabel(/title/i).fill('The Pragmatic Programmer');
+     await page.getByText(/add book/i).click();
+
+-    await expect(page.getByText(/book already exists/i)).toBeVisible();
++    await expect(
++      page.getByText(/the book the pragmatic programmer already exists/i),
++    ).toBeVisible();
+   });
+ });
+
+```
+
+Et le tour est joué ! Nos tests d'acceptation + nos tests unitaires passent :) C'est l'heure de faire un petit refactoring ;)
