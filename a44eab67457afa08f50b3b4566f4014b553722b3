@@ -124,6 +124,10 @@ Un point intéressant que les plus attentifs d'entre-vous auront probablement d�
    ],
 ```
 
+Voici le résultat :
+
+{% embed url="https://app.arcade.software/share/FoI67XeiQV0eRsTD37OT" %}
+
 Enfin, il nous faut modifier un petit peu le test d'acceptation.
 
 En effet, actuellement j'utilise un repository in-memory. Lorsque l'on va lacner les tests d'acceptation, le serveur va se lancer, et le `InMemoryBookRepository` sera instancié. De fait, chaque test "utilise" de manière sous-jacente le même repository, ce qui rend les tests non isolés ! Les tests étant exécutés en parallèle, il est possible que le premier test fail directement car le livre Clean Code aura déjà été ajouté par un autre test.
