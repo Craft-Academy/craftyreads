@@ -10,7 +10,7 @@ import { BookRepository } from './book-repository.port';
   providers: [
     {
       provide: BookRepository,
-      useValue: InMemoryBookRepository,
+      useClass: InMemoryBookRepository,
     },
     AddBookUseCase,
   ],
