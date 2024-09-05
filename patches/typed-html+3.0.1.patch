@@ -1,0 +1,33 @@
+diff --git a/node_modules/typed-html/dist/esm/src/elements.d.ts b/node_modules/typed-html/dist/esm/elements.d.ts
+similarity index 68%
+rename from node_modules/typed-html/dist/esm/src/elements.d.ts
+rename to node_modules/typed-html/dist/esm/elements.d.ts
+index 4d68df8..7d6e280 100644
+--- a/node_modules/typed-html/dist/esm/src/elements.d.ts
++++ b/node_modules/typed-html/dist/esm/elements.d.ts
+@@ -1,6 +1,6 @@
+-/// <reference path="../../../src/jsx/element-types.d.ts" />
+-/// <reference path="../../../src/jsx/events.d.ts" />
+-/// <reference path="../../../src/jsx/intrinsic-elements.d.ts" />
++/// <reference path="../../src/jsx/element-types.d.ts" />
++/// <reference path="../../src/jsx/events.d.ts" />
++/// <reference path="../../src/jsx/intrinsic-elements.d.ts" />
+ declare type AttributeValue = number | string | Date | boolean | string[];
+ export interface Children {
+     children?: AttributeValue;
+diff --git a/node_modules/typed-html/dist/esm/src/elements.d.ts.map b/node_modules/typed-html/dist/esm/elements.d.ts.map
+similarity index 100%
+rename from node_modules/typed-html/dist/esm/src/elements.d.ts.map
+rename to node_modules/typed-html/dist/esm/elements.d.ts.map
+diff --git a/node_modules/typed-html/dist/esm/src/elements.js b/node_modules/typed-html/dist/esm/elements.js
+similarity index 100%
+rename from node_modules/typed-html/dist/esm/src/elements.js
+rename to node_modules/typed-html/dist/esm/elements.js
+diff --git a/node_modules/typed-html/dist/esm/src/elements.js.map b/node_modules/typed-html/dist/esm/elements.js.map
+similarity index 100%
+rename from node_modules/typed-html/dist/esm/src/elements.js.map
+rename to node_modules/typed-html/dist/esm/elements.js.map
+diff --git a/node_modules/typed-html/dist/esm/src/tsconfig.tsbuildinfo b/node_modules/typed-html/dist/esm/tsconfig.tsbuildinfo
+similarity index 100%
+rename from node_modules/typed-html/dist/esm/src/tsconfig.tsbuildinfo
+rename to node_modules/typed-html/dist/esm/tsconfig.tsbuildinfo

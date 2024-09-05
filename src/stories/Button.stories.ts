@@ -1,21 +1,26 @@
 import type { StoryObj, Meta } from '@storybook/html';
-import { fn } from '@storybook/test';
+import { Button } from '../components/button';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
   title: 'Example/Button',
   tags: ['autodocs'],
-  render: () => {
-    return `<button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-      Add Book
-    </button>`;
+  render: (args) => {
+    // You can either use a function to create DOM elements or use a plain html string!
+    // return `<div>${label}</div>`;
+    return Button(args);
   },
-  // Use `fn` to spy on the onClick arg, which will appear in the actions panel once invoked: https://storybook.js.org/docs/essentials/actions#action-args
-  args: { onClick: fn() },
-} satisfies Meta;
+  argTypes: {
+    name: { control: 'color' },
+  },
+} satisfies Meta<{ name: string }>;
 
 export default meta;
-type Story = StoryObj;
+type Story = StoryObj<{ name: string }>;
 
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
-export const Primary: Story = {};
+export const Primary: Story = {
+  args: {
+    name: 'Foo Bar',
+  },
+};
