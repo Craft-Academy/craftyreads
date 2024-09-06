@@ -1,0 +1,23 @@
+Avant de poursuivre dans l'implémentation de la première vraie fonctionnalité, on va en profiter pour faire un petit refactoring.
+
+Actuellement, on retourne une string HTML directement depuis le controller.
+
+Ca marche bien, mais à terme ce ne sera pas très pratique...
+
+L'idéal serait de pouvoir utiliser des composants, un peu comme avec react !
+
+Pour ce faire, on va utiliser typed-html, qui est petite librairie qui permet d'utiliser du jsx :)
+
+### Installation et configuration de Storybook et typed-html
+
+Pour installer storybook, rien de plus simple, il suffit de suivre le wizard :
+
+`npx storybook@latest init`
+
+On sélectionne ensuite le mode "html", et j'ai choisi "vite" comme bundler.
+
+Par défaut, storybook installe aussi l'extension "addon-essentials", qui contient notamment la possibilité d'écrire de la documentation avec mdx.
+
+Ce package introduit une dépendance à react, et notamment au package `@types/react`, qui va poser problème avec le typage JSX de typed-html.
+
+Pour ne pas avoir de problème, on va simplement supprimer le module `@types/react` de nos node_modules dans un script `postinstall` dans notre package.json:
