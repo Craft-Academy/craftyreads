@@ -1,0 +1,161 @@
+Avant de poursuivre dans l'implémentation de la première vraie fonctionnalité, on va en profiter pour faire un petit refactoring.
+
+Actuellement, on retourne une string HTML directement depuis le controller.
+
+Ca marche bien, mais à terme ce ne sera pas très pratique...
+
+L'idéal serait de pouvoir utiliser des composants, un peu comme avec react !
+
+Pour ce faire, on va utiliser typed-html, qui est petite librairie qui permet d'utiliser du jsx :)
+
+### Installation et configuration de Storybook et typed-html
+
+Pour installer storybook, rien de plus simple, il suffit de suivre le wizard :
+
+`npx storybook@latest init`
+
+On sélectionne ensuite le mode "html", et j'ai choisi "vite" comme bundler.
+
+Par défaut, storybook installe aussi l'extension "addon-essentials", qui contient notamment la possibilité d'écrire de la documentation avec mdx.
+
+Ce package introduit une dépendance à react, et notamment au package `@types/react`, qui va poser problème avec le typage JSX de typed-html. On va voir juste après comme remédier à ce problème.
+
+Installons maintenant typed-html :
+
+`npm i typed-html`
+
+Cette petite librairie permet d'écrire du JSX sans utiliser react, et convertir ce jsx en chaîne de caractères. Pour ce faire, il simplement configurer le fichier `tsconfig.json` :
+
+```diff
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "strictBindCallApply": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
++   "jsx": "react",
++   "jsxFactory": "elements.createElement",
+```
+
+`elements` est l'objet utilisé par typed-html pour générer la string HTML à partir du JSX.
+
+À l'heure où j'écris ces lignes, il y a un léger bug dans le `package.json` de `typed-html`, une erreur sur la destination esm des fichiers.
+
+Tant que la PR n'est pas mergée, on peut simplement créer un patch avec `patch-package` :
+
+`npm i -D patch-package`
+`mkdir patches`
+`cd patches && vi typed-html+3.0.1.patch`
+
+Le contenu du patch :
+
+```patch
+diff --git a/node_modules/typed-html/dist/esm/src/elements.d.ts b/node_modules/typed-html/dist/esm/elements.d.ts
+similarity index 68%
+rename from node_modules/typed-html/dist/esm/src/elements.d.ts
+rename to node_modules/typed-html/dist/esm/elements.d.ts
+index 4d68df8..7d6e280 100644
+--- a/node_modules/typed-html/dist/esm/src/elements.d.ts
++++ b/node_modules/typed-html/dist/esm/elements.d.ts
+@@ -1,6 +1,6 @@
+-/// <reference path="../../../src/jsx/element-types.d.ts" />
+-/// <reference path="../../../src/jsx/events.d.ts" />
+-/// <reference path="../../../src/jsx/intrinsic-elements.d.ts" />
++/// <reference path="../../src/jsx/element-types.d.ts" />
++/// <reference path="../../src/jsx/events.d.ts" />
++/// <reference path="../../src/jsx/intrinsic-elements.d.ts" />
+ declare type AttributeValue = number | string | Date | boolean | string[];
+ export interface Children {
+     children?: AttributeValue;
+diff --git a/node_modules/typed-html/dist/esm/src/elements.d.ts.map b/node_modules/typed-html/dist/esm/elements.d.ts.map
+similarity index 100%
+rename from node_modules/typed-html/dist/esm/src/elements.d.ts.map
+rename to node_modules/typed-html/dist/esm/elements.d.ts.map
+diff --git a/node_modules/typed-html/dist/esm/src/elements.js b/node_modules/typed-html/dist/esm/elements.js
+similarity index 100%
+rename from node_modules/typed-html/dist/esm/src/elements.js
+rename to node_modules/typed-html/dist/esm/elements.js
+diff --git a/node_modules/typed-html/dist/esm/src/elements.js.map b/node_modules/typed-html/dist/esm/elements.js.map
+similarity index 100%
+rename from node_modules/typed-html/dist/esm/src/elements.js.map
+rename to node_modules/typed-html/dist/esm/elements.js.map
+diff --git a/node_modules/typed-html/dist/esm/src/tsconfig.tsbuildinfo b/node_modules/typed-html/dist/esm/tsconfig.tsbuildinfo
+similarity index 100%
+rename from node_modules/typed-html/dist/esm/src/tsconfig.tsbuildinfo
+rename to node_modules/typed-html/dist/esm/tsconfig.tsbuildinfo
+```
+
+Enfin il suffit d'ajouter un script `postinstall` dans notre `package.json` et le tour est joué. On en profite aussi pour supprimer le package `@types/react` de nos node_modules pour ne pas avoir d'interference avec le typage de JSX :
+
+```diff
+     "test:e2e": "jest --config ./test/jest-e2e.json",
+     "storybook": "storybook dev -p 6006",
+     "build-storybook": "storybook build",
+-    "postinstall": "patch-package"
++    "postinstall": "patch-package && rm -rf node_modules/@types/react"
+   },
+   "dependencies": {
+     "@nestjs/common": "^10.0.0",
+```
+
+Il nous reste une petite configuration pour storybook et vite à mettre en place pour que le bundler vite utilise correctement `elements.createElement`.
+
+Il suffit d'ajouter un fichier `vite.config.ts` dans le dossier `.storybook` :
+
+`.storybook/vite.config.ts`
+```ts
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  esbuild: {
+    jsxFactory: 'elements.createElement',
+  }
+})
+```
+
+Et évidemment préciser dans la configuration de Storybook qu'on veut utiliser ce fichier de configuration :
+
+`.storybook/main.ts`
+```ts
+import type { StorybookConfig } from '@storybook/html-vite';
+
+const config: StorybookConfig = {
+  stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
+  addons: [
+    '@storybook/addon-links',
+    '@chromatic-com/storybook',
+    '@storybook/addon-interactions',
+    '@storybook/addon-essentials'
+  ],
+  framework: {
+    name: '@storybook/html-vite',
+    options: {
+      builder: {
+        viteConfigPath: './.storybook/vite.config.ts',
+      }
+    },
+  },
+};
+export default config;
+```
+
+Dernière étape, simplement ajouter les scripts de tailwind et de htmx dans le `head` des pages storybook. Rien de plus simple encore une fois, il suffit de créer un fichier `preview-head.html` dans le dossier `.storybook` :
+
+`.storybook/preview-head.html`
+```html
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/htmx.org@2.0.1" integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/" crossorigin="anonymous"></script>
+```
