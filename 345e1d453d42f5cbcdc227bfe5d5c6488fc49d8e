@@ -1,0 +1,389 @@
+```diff
+diff --git a/src/app.controller.ts b/src/app.controller.ts
+deleted file mode 100644
+index 5e59a92..0000000
+--- a/src/app.controller.ts
++++ /dev/null
+```
+
+@@
+```diff
+ -1,91 +0,0 @@
+-import { Body, Controller, Get, Post } from '@nestjs/common';
+-import { AddBookUseCase } from './add-book.usecase';
+-
+-@Controller()
+-export class AppController {
+-  constructor(private readonly addBookUseCase: AddBookUseCase) {}
+-
+-  @Get()
+-  index(): string {
+-    return `
+-<!DOCTYPE html>
+-<html>
+-  <head>
+-    <title>Crafty Reads</title>
+-    <meta charset="UTF-8">
+-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+-    <script src="https://cdn.tailwindcss.com"></script>
+-    <script src="https://unpkg.com/htmx.org@2.0.1" integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/" crossorigin="anonymous"></script>
+-  </head>
+-  <body>
+-    <main class="container mx-auto px-4 py-8">
+-      <div id="add-book-form">
+-        <form action="/" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" method="post" hx-boost="true" hx-target="#add-book-form" hx-swap="outerHTML">
+-          <div class="mb-4">
+-            <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
+-              Title
+-            </label>
+-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="title" type="text" name="title" placeholder="Enter book title" required>
+-          </div>
+-          <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+-            Add Book
+-          </button>
+-        </form>
+-      </div>
+-    </main>
+-  </body>
+-</html>`;
+-  }
+-
+-  @Post()
+-  async addBook(@Body() body: { title: string }) {
+-    try {
+-      await this.addBookUseCase.execute({ title: body.title });
+-      return `
+-        <div id="add-book-form">
+-          <div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md" role="alert">
+-            <div class="flex">
+-              <div class="py-1"><svg class="fill-current h-6 w-6 text-teal-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/></svg></div>
+-              <div>
+-                <p class="text-sm">Book added</p>
+-              </div>
+-            </div>
+-          </div>
+-          <form action="/" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" method="post" hx-boost="true" hx-target="#add-book-form" hx-swap="outerHTML">
+-            <div class="mb-4">
+-              <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
+-                Title
+-              </label>
+-              <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="title" type="text" name="title" placeholder="Enter book title" required>
+-            </div>
+-            <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+-              Add Book
+-            </button>
+-          </form>
+-        </div>
+-      `;
+-    } catch (error) {
+-      return `
+-        <div id="add-book-form">
+-          <div role="alert">
+-            <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
+-              Book not added
+-            </div>
+-          </div>
+-          <form action="/" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" method="post" hx-boost="true" hx-target="#add-book-form" hx-swap="outerHTML">
+-            <div class="mb-4">
+-              <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
+-                Title
+-              </label>
+-              <input class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="title" name="title" type="text" placeholder="Enter book title" name="title" placeholder="Enter book title" required>
+-              <p class="text-red-500 text-xs italic mt-2">${(error as any).message}</p>
+-            </div>
+-            <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+-              Add Book
+-            </button>
+-          </form>
+-        </div>
+-      `;
+-    }
+-  }
+-}
+diff --git a/src/app.controller.tsx b/src/app.controller.tsx
+new file mode 100644
+index 0000000..71a1437
+--- /dev/null
++++ b/src/app.controller.tsx
+```
+
+@@
+```diff
+ -0,0 +1,47 @@
++import * as elements from 'typed-html';
++import { Body, Controller, Get, Post } from '@nestjs/common';
++import { AddBookUseCase } from './add-book.usecase';
++import { Layout } from './components/layout';
++import { AddBookForm } from './components/add-book-form';
++
++@Controller()
++export class AppController {
++  constructor(private readonly addBookUseCase: AddBookUseCase) {}
++
++  @Get()
++  index(): string {
++    return (
++      <Layout>
++        <AddBookForm inputPlaceholder="Enter book title" />
++      </Layout>
++    );
++  }
++
++  @Post()
++  async addBook(@Body() body: { title: string }) {
++    try {
++      await this.addBookUseCase.execute({ title: body.title });
++      return (
++        <AddBookForm
++          inputPlaceholder="Enter book title"
++          toast={{
++            type: 'success',
++            title: 'Book added',
++            message: 'The book has been added to the list',
++          }}
++        />
++      );
++    } catch (error) {
++      return (
++        <AddBookForm
++          inputPlaceholder="Enter book title"
++          toast={{
++            type: 'error',
++            title: 'Book not added',
++            message: (error as any).message,
++          }}
++        />
++      );
++    }
++  }
++}
+diff --git a/src/components/add-book-form.tsx b/src/components/add-book-form.tsx
+new file mode 100644
+index 0000000..65b2765
+--- /dev/null
++++ b/src/components/add-book-form.tsx
+```
+
+@@
+```diff
+ -0,0 +1,46 @@
++import * as elements from 'typed-html';
++import { Button } from './button';
++import { Toast } from './toast';
++
++export const AddBookForm = ({
++  inputPlaceholder,
++  toast,
++}: {
++  inputPlaceholder: string;
++  toast?: {
++    type: 'error' | 'success';
++    title: string;
++    message: string;
++  };
++}) => {
++  return (
++    <div id="add-book-form">
++      <form
++        action="/"
++        class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
++        method="post"
++        hx-boost="true"
++        hx-target="#add-book-form"
++        hx-swap="outerHTML"
++      >
++        <div class="mb-4">
++          <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
++            Title
++          </label>
++          <input
++            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
++            id="title"
++            type="text"
++            name="title"
++            placeholder={inputPlaceholder}
++            required="required"
++          />
++        </div>
++        <Button name="Add Book" type="submit" />
++      </form>
++      {toast && (
++        <Toast title={toast.title} message={toast.message} type={toast.type} />
++      )}
++    </div>
++  );
++};
+diff --git a/src/components/button.tsx b/src/components/button.tsx
+index 374ef1c..2e46779 100644
+--- a/src/components/button.tsx
++++ b/src/components/button.tsx
+```
+
+@@
+```diff
+ -1,10 +1,10 @@
+ import * as elements from 'typed-html';
+
+-export const Button = ({ name }: { name: string }) => {
++export const Button = ({ name, type }: { name: string; type: string }) => {
+   return (
+     <button
+       class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+-      type="submit"
++      type={type}
+     >
+       {name}
+     </button>
+diff --git a/src/components/layout.tsx b/src/components/layout.tsx
+new file mode 100644
+index 0000000..d771826
+--- /dev/null
++++ b/src/components/layout.tsx
+```
+
+@@
+```diff
+ -0,0 +1,39 @@
++import * as elements from 'typed-html';
++
++export const Layout = ({ children }: elements.Attributes) => {
++  return (
++    <html>
++      <head>
++        <title>Crafty Reads</title>
++        <meta charset="UTF-8" />
++        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++        <script src="https://cdn.tailwindcss.com"></script>
++        <script
++          src="https://unpkg.com/htmx.org@2.0.1"
++          integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/"
++          crossorigin="anonymous"
++        ></script>
++        <script src="//unpkg.com/alpinejs" defer=""></script>
++      </head>
++      <body>
++        <main class="container mx-auto px-4 py-8">{children}</main>
++        <div
++          aria-live="assertive"
++          class="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
++        >
++          <div class="flex w-full flex-col items-center space-y-4 sm:items-end">
++            <div
++              id="toast-container"
++              x-transition:enter="transform ease-out duration-300 transition"
++              x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
++              x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
++              x-transition:leave="transition ease-in duration-100"
++              x-transition:leave-start="opacity-100"
++              x-transition:leave-end="opacity-0"
++            ></div>
++          </div>
++        </div>
++      </body>
++    </html>
++  );
++};
+diff --git a/src/components/toast.tsx b/src/components/toast.tsx
+new file mode 100644
+index 0000000..2598537
+--- /dev/null
++++ b/src/components/toast.tsx
+```
+
+@@
+```diff
+ -0,0 +1,64 @@
++import * as elements from 'typed-html';
++
++export const Toast = ({
++  title,
++  message,
++  type,
++}: {
++  title: string;
++  message: string;
++  type: 'error' | 'success';
++}) => {
++  return (
++    <div
++      id="toast-container"
++      hx-swap-oob="true"
++      x-data="{ open: true }"
++      x-init="setTimeout(() => open = false, 1500)"
++      class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5"
++      x-show="open"
++    >
++      <div class="p-4">
++        <div class="flex items-start">
++          <div class="flex-shrink-0">
++            {`<svg
++              class="h-6 w-6 text-${type === 'success' ? 'green' : 'red'}-400"
++              fill="none"
++              viewBox="0 0 24 24"
++              stroke-width="1.5"
++              stroke="currentColor"
++              aria-hidden="true"
++            >
++              <path
++                stroke-linecap="round"
++                stroke-linejoin="round"
++                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
++              />
++            </svg>`}
++          </div>
++          <div class="ml-3 w-0 flex-1 pt-0.5">
++            <p class="text-sm font-medium text-gray-900">{title}</p>
++            <p class="mt-1 text-sm text-gray-500">{message}</p>
++          </div>
++          <div class="ml-4 flex flex-shrink-0">
++            <button
++              type="button"
++              x-on:click="open = false"
++              class="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
++            >
++              <span class="sr-only">Close</span>
++              {`<svg
++                class="h-5 w-5"
++                viewBox="0 0 20 20"
++                fill="currentColor"
++                aria-hidden="true"
++              >
++                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
++              </svg>`}
++            </button>
++          </div>
++        </div>
++      </div>
++    </div>
++  );
++};
+diff --git a/src/stories/Button.stories.ts b/src/stories/Button.stories.ts
+index f06485b..be61f2c 100644
+--- a/src/stories/Button.stories.ts
++++ b/src/stories/Button.stories.ts
+```
+
+@@
+```diff
+ -12,15 +12,17 @@ const meta = {
+   },
+   argTypes: {
+     name: { control: 'color' },
++    type: { control: 'text' },
+   },
+-} satisfies Meta<{ name: string }>;
++} satisfies Meta<{ name: string; type: string }>;
+
+ export default meta;
+-type Story = StoryObj<{ name: string }>;
++type Story = StoryObj<{ name: string; type: string }>;
+
+ // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
+ export const Primary: Story = {
+   args: {
+     name: 'Foo Bar',
++    type: 'submit',
+   },
+ };
+
+```
