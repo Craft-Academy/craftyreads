@@ -12,15 +12,17 @@ const meta = {
   },
   argTypes: {
     name: { control: 'color' },
+    type: { control: 'text' },
   },
-} satisfies Meta<{ name: string }>;
+} satisfies Meta<{ name: string; type: string }>;
 
 export default meta;
-type Story = StoryObj<{ name: string }>;
+type Story = StoryObj<{ name: string; type: string }>;
 
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const Primary: Story = {
   args: {
     name: 'Foo Bar',
+    type: 'submit',
   },
 };
